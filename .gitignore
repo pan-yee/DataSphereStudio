@@ -6,7 +6,6 @@
 assembly/target
 assembly/dss-package/target
 
-
 # dss-commons
 dss-commons/dss-sender-service/target
 
