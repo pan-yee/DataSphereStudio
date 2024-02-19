@@ -251,10 +251,7 @@ module.exports = {
       ['/api/rest_j/v1']: {
         target: 'http://10.130.137.124:8085',
         changeOrigin: true,
-        logLevel: 'debug',
-        pathRewrite: {
-          ['^/api/rest_j/v1']: '/api/rest_j/v1'
-        }
+        // logLevel: 'debug',
       },
 
     }
