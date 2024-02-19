@@ -58,6 +58,17 @@ export default [
   },
   // 公用页面，不受权限控制
   {
+    path: '/jump',
+    name: 'jump',
+    meta: {
+      title: 'Jump',
+      publicPage: true,
+    },
+    component: () =>
+      import('../view/jump/index.vue'),
+  },
+
+  {
     path: '/500',
     name: 'serverErrorPage',
     meta: {
