@@ -50,7 +50,7 @@ export default {
     //   this.loginForm.password = userNameAndPass.split('&')[1];
     // }
     // this.getPublicKey()
-    this.getLoginKey()
+    this.getThirdLogin()
   },
   mounted() {
     storage.set('close_db_table_suggest', false);
@@ -87,7 +87,7 @@ export default {
       })
     },
     // 获取登录接口
-    getLoginKey() {
+    getThirdLogin() {
       let option={
         headers: {
           Authorization: this.Authorization
