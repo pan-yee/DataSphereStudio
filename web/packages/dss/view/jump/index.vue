@@ -12,11 +12,10 @@ import storage from '@dataspherestudio/shared/common/helper/storage';
 import mixin from '@dataspherestudio/shared/common/service/mixin';
 import { db } from '@dataspherestudio/shared/common/service/db/index.js';
 import { config } from '@dataspherestudio/shared/common/config/db.js';
-import JSEncrypt from 'jsencrypt';
 import util from '@dataspherestudio/shared/common/util/';
 import tab from '@/scriptis/service/db/tab.js';
-import eventbus from '@dataspherestudio/shared/common/helper/eventbus';
-import plugin from '@dataspherestudio/shared/common/util/plugin'
+// import eventbus from '@dataspherestudio/shared/common/helper/eventbus';
+// import plugin from '@dataspherestudio/shared/common/util/plugin'
 
 export default {
   data() {
@@ -38,18 +37,13 @@ export default {
       },
       rememberUserNameAndPass: false,
       publicKeyData: null,
-      Authorization: decodeURIComponent(this.$route.query.token || '')
+      Authorization: decodeURIComponent(this.$route.query.token || ''),
+      menu: this.$route.query.menu || '',
+      workspaceId: this.$route.query.workspaceId || '',
     };
   },
   mixins: [mixin],
   created() {
-    // let userNameAndPass = storage.get('saveUserNameAndPass', 'local');
-    // if (userNameAndPass) {
-    //   this.rememberUserNameAndPass = true;
-    //   this.loginForm.user = userNameAndPass.split('&')[0];
-    //   this.loginForm.password = userNameAndPass.split('&')[1];
-    // }
-    // this.getPublicKey()
     this.getThirdLogin()
   },
   mounted() {
@@ -73,6 +67,7 @@ export default {
         micro_module: currentModules.microModule || 'dss'
       }, 'get').then((res) => {
         storage.set('noWorkSpace', false, 'local')
+        console.log(res)
         return res.workspaceHomePage;
       }).catch((e) => {
         storage.set('noWorkSpace', true, 'local');
@@ -80,14 +75,21 @@ export default {
         throw e;
       });
     },
-    // 获取公钥接口
-    getPublicKey() {
-      api.fetch('/user/publicKey', 'get').then((res) => {
-        this.publicKeyData = res;
-      })
-    },
+
     // 获取登录接口
-    getThirdLogin() {
+    async getThirdLogin() {
+      // 登录清掉本地缓存
+      // 保留Scripts页面打开的tab页面
+      // 连续两次退出登录后，会导致数据丢失，所以得判断是否已存切没有使用
+      let tabs = await tab.get() || [];
+      const tablist = storage.get(this.loginForm.user + 'tabs', 'local');
+      if (!tablist || tablist.length <= 0) {
+        storage.set(this.loginForm.user + 'tabs', tabs, 'local');
+      }
+      Object.keys(config.stores).map((key) => {
+        db.db[key].clear();
+      })
+
       let option={
         headers: {
           Authorization: this.Authorization
@@ -95,111 +97,30 @@ export default {
       }
       api.fetch(`/dss-api/subsystem/login?systemType=1`, {},option).then(async (res) => {
         if (res) {
-          // 跳转去旧版
-          if (res.redirectLinkisUrl) {
-            location.href = res.redirectLinkisUrl;
-            return
-          }
+          // // 跳转去旧版
+          // if (res.redirectLinkisUrl) {
+          //   location.href = res.redirectLinkisUrl;
+          //   return
+          // }
           this.baseInfo = { username: 'this.loginForm.user' };
           storage.set('baseInfo', this.baseInfo, 'local');
           this.getIsAdmin()
           // 登录之后需要获取当前用户的调转首页的路径
-          const homePageRes = await this.getPageHomeUrl()
-          const all_after_login = await plugin.emitHook('after_login', {
-            context: this,
-            homePageRes
-          })
-          eventbus.emit('watermark.refresh');
-          if (all_after_login.length) {
-            // 有hook返回则hook处理
-          } else {
-            this.$router.replace({ path: homePageRes.homePageUrl });
-          }
+          // const homePageRes = await this.getPageHomeUrl()
+          // const all_after_login = await plugin.emitHook('after_login', {
+          //   context: this,
+          //   homePageRes
+          // })
+          // eventbus.emit('watermark.refresh');
+          // if (all_after_login.length) {
+          //   // 有hook返回则hook处理
+          // } else {
+          //   this.$router.replace({ path: homePageRes.homePageUrl });
+          // }
+          this.$router.replace({ path: `/${this.menu}?workspaceId=${this.workspaceId}`});
           this.$Message.success(this.$t('message.common.login.loginSuccess'));
         }
       })
-    },
-    handleSubmit(name) {
-      this.$refs[name].validate(async (valid) => {
-        if (valid) {
-          this.loading = true;
-          if (!this.rememberUserNameAndPass) {
-            storage.remove('saveUserNameAndPass', 'local');
-          }
-          // this.loginForm.user = this.loginForm.user.toLocaleLowerCase();
-          // 需要判断是否需要给密码加密
-          let password = this.loginForm.password;
-          let params = {};
-          if (this.publicKeyData && this.publicKeyData.enableLoginEncrypt) {
-            const key = `-----BEGIN PUBLIC KEY-----${this.publicKeyData.publicKey}-----END PUBLIC KEY-----`;
-            const encryptor = new JSEncrypt()
-            encryptor.setPublicKey(key)
-            password = encryptor.encrypt(this.loginForm.password);
-            params = {
-              userName: this.loginForm.user,
-              password
-            };
-          } else {
-            params = {
-              userName: this.loginForm.user,
-              password
-            };
-          }
-          // 登录清掉本地缓存
-          // 保留Scripts页面打开的tab页面
-          // 连续两次退出登录后，会导致数据丢失，所以得判断是否已存切没有使用
-          let tabs = await tab.get() || [];
-          const tablist = storage.get(this.loginForm.user + 'tabs', 'local');
-          if (!tablist || tablist.length <= 0) {
-            storage.set(this.loginForm.user + 'tabs', tabs, 'local');
-          }
-          Object.keys(config.stores).map((key) => {
-            db.db[key].clear();
-          })
-          let rst
-          try {
-            rst = await api.fetch(`/user/login`, params)
-            this.loading = false;
-            // 保存用户名
-            if (this.rememberUserNameAndPass) {
-              storage.set('saveUserNameAndPass', `${this.loginForm.user}&${this.loginForm.password}`, 'local');
-            }
-
-            if (rst) {
-              // 跳转去旧版
-              if (rst.redirectLinkisUrl) {
-                location.href = rst.redirectLinkisUrl;
-                return
-              }
-              this.baseInfo = { username: this.loginForm.user };
-              storage.set('baseInfo', this.baseInfo, 'local');
-              this.getIsAdmin()
-              // 登录之后需要获取当前用户的调转首页的路径
-              const homePageRes = await this.getPageHomeUrl()
-              const all_after_login = await plugin.emitHook('after_login', {
-                context: this,
-                homePageRes
-              })
-              eventbus.emit('watermark.refresh');
-              if (all_after_login.length) {
-                // 有hook返回则hook处理
-              } else {
-                this.$router.replace({ path: homePageRes.homePageUrl });
-              }
-              this.$Message.success(this.$t('message.common.login.loginSuccess'));
-            }
-          } catch (error) {
-            console.error(error)
-            this.loading = false
-          }
-        } else {
-          this.$Message.error(this.$t('message.common.login.vaildFaild'));
-        }
-      });
-    },
-    // 清楚本地缓存
-    clearSession() {
-      storage.clear();
     },
     getIsAdmin() {
       api.fetch(`/jobhistory/governanceStationAdmin`, {}, 'get').then((rst) => {
@@ -207,35 +128,7 @@ export default {
         storage.set('baseInfo', this.baseInfo, 'local');
       })
     },
-    checkChromeVersion() {
-      let arr = navigator.userAgent.split(' ');
-      let chromeVersion = '';
-      for (let i = 0; i < arr.length; i++) {
-        if (/chrome/i.test(arr[i]))
-          chromeVersion = arr[i]
-      }
-      let showversionTip = false
-      if (chromeVersion) {
-        chromeVersion = Number(chromeVersion.split('/')[1].split('.')[0]);
-        showversionTip = chromeVersion <= 66 || chromeVersion >= 80
-      } else {
-        showversionTip = true
-      }
-      const hasTip = storage.get('chrome-version-tip', 'local')
-      if (showversionTip && !hasTip) {
-        const link = `，<a href="${this.$APP_CONF.update_chrome}">${this.$t("message.common.dss.guide")}</a>`
-        const contact = `，${this.$t("message.common.dss.contactadmin")}`
-        this.$Modal.confirm({
-          title: this.$t('message.common.dss.Prompt'),
-          cancelText: this.$t('message.common.dss.noPrompt'),
-          onCancel: () => {
-            storage.set('chrome-version-tip', true, 'local');
-          },
-          content: `${chromeVersion ? this.$t('message.common.dss.currentbrower') + chromeVersion + '，' : ''}
-            ${this.$t('message.common.dss.Recommend')}Chrome 78 ${this.$APP_CONF.update_chrome ? link : contact}`
-        });
-      }
-    }
+
   },
 };
 </script>

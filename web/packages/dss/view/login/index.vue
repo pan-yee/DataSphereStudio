@@ -97,7 +97,7 @@ export default {
     storage.set('close_db_table_suggest', false);
     const workspaceId = this.getCurrentWorkspaceId()
     sessionStorage.removeItem(`work_flow_lists_${workspaceId}`)
-    this.checkChromeVersion()
+    // this.checkChromeVersion()
   },
   methods: {
     logout() {
