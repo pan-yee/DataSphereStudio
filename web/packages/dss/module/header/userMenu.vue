@@ -20,10 +20,6 @@ import api from '@dataspherestudio/shared/common/service/api';
 import storage from '@dataspherestudio/shared/common/helper/storage';
 import mixin from '@dataspherestudio/shared/common/service/mixin';
 import eventbus from '@dataspherestudio/shared/common/helper/eventbus';
-import {
-  development_logout_url,
-  production_logout_url,
-} from '../../assets/javascripts/config.js';
 
 export default {
   name: 'dssMenu',
@@ -105,16 +101,10 @@ export default {
         storage.set('need-refresh-proposals-python', true);
         // 手动退出清掉baseInfo
         storage.remove('baseInfo', 'local');
-        // this.$router.push({ path: '/login' });
-        if (process.env.NODE_ENV === 'development') {
-          console.log('当前环境是开发版本');
-          // 在开发版本中执行的逻辑
-          window.location.replace(`${development_logout_url}`);
-        } else {
-          console.log('当前环境是生产版本');
-          // 在生产版本中执行的逻辑
-          window.location.replace(`${production_logout_url}`);
-        }
+        let backlen = window.history.length;
+        window.history.go(-backlen);
+
+        this.$router.replace({ path: '/login' });
       });
     },
     changeLang() {

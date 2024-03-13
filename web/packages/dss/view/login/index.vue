@@ -1,53 +1,54 @@
 <template>
-  <div
-    class="login"
-    @keyup.enter.stop.prevent="handleSubmit('loginForm')"
-  >
-    <i class="login-bg" />
-    <div class="login-main">
-      <Form
-        ref="loginForm"
-        :model="loginForm"
-        :rules="ruleInline"
-      >
-        <FormItem>
-          <span class="login-title">{{$t('message.common.login.loginTitle', {app_name: $APP_CONF.app_name})}}</span>
-        </FormItem>
-        <FormItem prop="user">
-          <div class="label">{{ $t('message.common.dss.Username') }}</div>
-          <Input
-            v-model="loginForm.user"
-            type="text"
-            :placeholder="$t('message.common.login.userName')"
-            size="large"
-          />
-        </FormItem>
-        <FormItem prop="password">
-          <div class="label">{{ $t('message.common.dss.Password') }}</div>
-          <Input
-            v-model="loginForm.password"
-            type="password"
-            :placeholder="$t('message.common.dss.inputPassword')"
-            size="large"
-          />
-        </FormItem>
-        <FormItem>
-          <Checkbox
-            v-model="rememberUserNameAndPass"
-            class="remember-user-name"
-            style=""
-          >{{$t('message.common.login.remenber')}}</Checkbox>
-          <Button
-            :loading="loading"
-            type="primary"
-            long
-            size="large"
-            @click="handleSubmit('loginForm')"
-          >{{$t('message.common.login.login')}}</Button>
-        </FormItem>
-      </Form>
-    </div>
-  </div>
+  <!--  <div-->
+  <!--    class="login"-->
+  <!--    @keyup.enter.stop.prevent="handleSubmit('loginForm')"-->
+  <!--  >-->
+  <!--    <i class="login-bg" />-->
+  <!--    <div class="login-main">-->
+  <!--      <Form-->
+  <!--        ref="loginForm"-->
+  <!--        :model="loginForm"-->
+  <!--        :rules="ruleInline"-->
+  <!--      >-->
+  <!--        <FormItem>-->
+  <!--          <span class="login-title">{{$t('message.common.login.loginTitle', {app_name: $APP_CONF.app_name})}}</span>-->
+  <!--        </FormItem>-->
+  <!--        <FormItem prop="user">-->
+  <!--          <div class="label">{{ $t('message.common.dss.Username') }}</div>-->
+  <!--          <Input-->
+  <!--            v-model="loginForm.user"-->
+  <!--            type="text"-->
+  <!--            :placeholder="$t('message.common.login.userName')"-->
+  <!--            size="large"-->
+  <!--          />-->
+  <!--        </FormItem>-->
+  <!--        <FormItem prop="password">-->
+  <!--          <div class="label">{{ $t('message.common.dss.Password') }}</div>-->
+  <!--          <Input-->
+  <!--            v-model="loginForm.password"-->
+  <!--            type="password"-->
+  <!--            :placeholder="$t('message.common.dss.inputPassword')"-->
+  <!--            size="large"-->
+  <!--          />-->
+  <!--        </FormItem>-->
+  <!--        <FormItem>-->
+  <!--          <Checkbox-->
+  <!--            v-model="rememberUserNameAndPass"-->
+  <!--            class="remember-user-name"-->
+  <!--            style=""-->
+  <!--          >{{$t('message.common.login.remenber')}}</Checkbox>-->
+  <!--          <Button-->
+  <!--            :loading="loading"-->
+  <!--            type="primary"-->
+  <!--            long-->
+  <!--            size="large"-->
+  <!--            @click="handleSubmit('loginForm')"-->
+  <!--          >{{$t('message.common.login.login')}}</Button>-->
+  <!--        </FormItem>-->
+  <!--      </Form>-->
+  <!--    </div>-->
+  <!--  </div>-->
+  <div></div>
 </template>
 <script>
 import api from '@dataspherestudio/shared/common/service/api';
@@ -60,6 +61,10 @@ import util from '@dataspherestudio/shared/common/util/';
 import tab from '@/scriptis/service/db/tab.js';
 import eventbus from '@dataspherestudio/shared/common/helper/eventbus';
 import plugin from '@dataspherestudio/shared/common/util/plugin'
+import {
+  development_logout_url,
+  production_logout_url,
+} from '../../assets/javascripts/config.js';
 
 export default {
   data() {
@@ -85,6 +90,19 @@ export default {
   },
   mixins: [mixin],
   created() {
+
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('当前环境是开发版本');
+      // 在开发版本中执行的逻辑
+      window.location.replace(`${development_logout_url}`);
+    } else {
+      console.log('当前环境是生产版本');
+      // 在生产版本中执行的逻辑
+      window.location.replace(`${production_logout_url}`);
+    }
+
+
     let userNameAndPass = storage.get('saveUserNameAndPass', 'local');
     if (userNameAndPass) {
       this.rememberUserNameAndPass = true;
