@@ -109,7 +109,7 @@ export default {
         if (process.env.NODE_ENV === 'development') {
           console.log('当前环境是开发版本');
           // 在开发版本中执行的逻辑
-          window.location.replace( `${development_logout_url}`);
+          window.location.replace(`${development_logout_url}`);
         } else {
           console.log('当前环境是生产版本');
           // 在生产版本中执行的逻辑
