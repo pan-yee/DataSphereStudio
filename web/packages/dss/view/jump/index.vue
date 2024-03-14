@@ -40,6 +40,7 @@ export default {
       Authorization: decodeURIComponent(this.$route.query.token || ''),
       menuId: this.$route.query.menuId || '',
       workspaceId: this.$route.query.workspaceId || '',
+      redirect: this.$route.query.redirect || '',
     };
   },
   mixins: [mixin],
@@ -117,11 +118,17 @@ export default {
           // } else {
           //   this.$router.replace({ path: homePageRes.homePageUrl });
           // }
-          this.$router.replace({ path: `/${this.menuId}?workspaceId=${this.workspaceId}`});
+          if (this.redirect && this.redirect!=='null'){
+            this.$router.replace({ path: `${this.redirect}`});
+          }else {
+            this.$router.replace({ path: `/${this.menuId}?workspaceId=${this.workspaceId}`});
+          }
+
           this.$Message.success(this.$t('message.common.login.loginSuccess'));
         }
       }).catch(async () =>{
-        this.$router.replace({ path: '/login' });
+        // this.$router.replace({ path: `/login?redirect=${encodeURIComponent(window.location.href)}` });
+        this.$router.replace({ path: `/login?redirect=${encodeURIComponent(`/${this.menuId}?workspaceId=${this.workspaceId}`)}` });
 
       })
     },

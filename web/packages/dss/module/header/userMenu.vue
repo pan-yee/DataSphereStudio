@@ -101,7 +101,7 @@ export default {
         storage.set('need-refresh-proposals-python', true);
         // 手动退出清掉baseInfo
         storage.remove('baseInfo', 'local');
-        this.$router.replace({ path: '/login' });
+        this.$router.replace({ path: `/login?redirect=${encodeURIComponent(this.$route.fullPath)}` });
       });
     },
     changeLang() {

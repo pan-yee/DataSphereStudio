@@ -85,24 +85,26 @@ export default {
         ],
       },
       rememberUserNameAndPass: false,
-      publicKeyData: null
+      publicKeyData: null,
+      redirect: decodeURIComponent(this.$route.query.redirect || '') ,
+
     };
   },
   mixins: [mixin],
   created() {
-
     let backlen = window.history.length;
     window.history.go(-backlen);
     if (process.env.NODE_ENV === 'development') {
       console.log('当前环境是开发版本');
       // 在开发版本中执行的逻辑
-      window.location.replace(`${development_logout_url}`);
+      window.location.replace(`${development_logout_url}&redirect=${encodeURIComponent(this.redirect)}&redirectUrl=${encodeURIComponent(window.location.protocol+'//'+window.location.host+'/#')}`);
     } else {
       console.log('当前环境是生产版本');
       // 在生产版本中执行的逻辑
-      window.location.replace(`${production_logout_url}`);
+      window.location.replace(`${production_logout_url}&redirect=${encodeURIComponent(this.redirect)}&redirectUrl=${encodeURIComponent(window.location.protocol+'//'+window.location.host+'/#')}`);
     }
 
+    console.log(this.redirect)
 
     let userNameAndPass = storage.get('saveUserNameAndPass', 'local');
     if (userNameAndPass) {
