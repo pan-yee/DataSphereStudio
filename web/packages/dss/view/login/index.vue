@@ -91,7 +91,8 @@ export default {
   mixins: [mixin],
   created() {
 
-
+    let backlen = window.history.length;
+    window.history.go(-backlen);
     if (process.env.NODE_ENV === 'development') {
       console.log('当前环境是开发版本');
       // 在开发版本中执行的逻辑

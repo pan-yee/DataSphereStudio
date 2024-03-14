@@ -16,10 +16,6 @@ import util from '@dataspherestudio/shared/common/util/';
 import tab from '@/scriptis/service/db/tab.js';
 // import eventbus from '@dataspherestudio/shared/common/helper/eventbus';
 // import plugin from '@dataspherestudio/shared/common/util/plugin'
-import {
-  development_logout_url,
-  production_logout_url,
-} from '../../assets/javascripts/config.js';
 
 export default {
   data() {
@@ -125,15 +121,7 @@ export default {
           this.$Message.success(this.$t('message.common.login.loginSuccess'));
         }
       }).catch(async () =>{
-        if (process.env.NODE_ENV === 'development') {
-          console.log('当前环境是开发版本');
-          // 在开发版本中执行的逻辑
-          window.location.replace(`${development_logout_url}`);
-        } else {
-          console.log('当前环境是生产版本');
-          // 在生产版本中执行的逻辑
-          window.location.replace(`${production_logout_url}`);
-        }
+        this.$router.replace({ path: '/login' });
 
       })
     },

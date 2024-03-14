@@ -101,9 +101,6 @@ export default {
         storage.set('need-refresh-proposals-python', true);
         // 手动退出清掉baseInfo
         storage.remove('baseInfo', 'local');
-        let backlen = window.history.length;
-        window.history.go(-backlen);
-
         this.$router.replace({ path: '/login' });
       });
     },
